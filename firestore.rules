@@ -1,0 +1,78 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: feedback
+    // Document ID: auto-generated
+    // Fields:
+    //   - rating: number (required, 1-5)
+    //   - phase: string (optional, max 50 chars)
+    //   - keyDataPoints: string (optional, max 2000 chars)
+    //   - additionalLogs: string (optional, max 2000 chars)
+    //   - timestamp: string (required, ISO 8601 format)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (request.auth.token.email == "agentmadhuka@gmail.com" && request.auth.token.email_verified == true);
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidDateString(dateStr) {
+      return dateStr is string &&
+        dateStr.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z?$");
+    }
+
+    function isValidOptionalString(field, minLen, maxLen) {
+      return !(field in request.resource.data) ||
+             (request.resource.data[field] is string &&
+              request.resource.data[field].size() >= minLen &&
+              request.resource.data[field].size() <= maxLen);
+    }
+
+    // Domain Validators
+    function isValidFeedback(data) {
+      return hasRequiredFields(['rating', 'timestamp']) &&
+             hasOnlyAllowedFields(['rating', 'phase', 'keyDataPoints', 'additionalLogs', 'timestamp']) &&
+             data.rating is number && data.rating >= 1 && data.rating <= 5 &&
+             isValidDateString(data.timestamp) &&
+             isValidOptionalString('phase', 0, 50) &&
+             isValidOptionalString('keyDataPoints', 0, 2000) &&
+             isValidOptionalString('additionalLogs', 0, 2000);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /feedback/{feedbackId} {
+      // Allow ANY user (even unauthenticated) to submit feedback
+      allow create: if isValidFeedback(request.resource.data);
+      
+      // Only admins can read feedback
+      allow read: if isAdmin();
+      
+      // No one can update or delete
+      allow update, delete: if false;
+    }
+  }
+}

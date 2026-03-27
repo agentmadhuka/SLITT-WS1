@@ -123,27 +123,31 @@ export default function Phases() {
       </div>
 
       {/* Roadmap */}
-      <section className="border border-outline-variant/20 bg-surface-container-low p-12">
-        <h3 className="text-sm font-bold tracking-[0.2em] text-primary uppercase mb-12">System Deployment Roadmap</h3>
+      <section className="border border-outline-variant/20 bg-surface-container-low p-6 md:p-12">
+        <h3 className="text-sm font-bold tracking-[0.2em] text-primary uppercase mb-8 md:mb-12">System Deployment Roadmap</h3>
         <div className="flex flex-col md:flex-row justify-between items-start gap-8 relative">
-          <div className="hidden md:block absolute top-10 left-0 w-full h-px bg-gradient-to-r from-primary/10 via-primary/40 to-primary/10"></div>
-          <div className="relative z-10 md:w-1/4">
-            <div className="w-4 h-4 rounded-full bg-primary mb-6 ring-8 ring-primary/10"></div>
+          {/* Horizontal line for desktop */}
+          <div className="hidden md:block absolute top-2 left-0 w-full h-px bg-gradient-to-r from-primary/10 via-primary/40 to-primary/10"></div>
+          {/* Vertical line for mobile */}
+          <div className="md:hidden absolute top-2 left-2 w-px h-[calc(100%-2rem)] bg-gradient-to-b from-primary/10 via-primary/40 to-primary/10"></div>
+          
+          <div className="relative z-10 md:w-1/4 pl-8 md:pl-0">
+            <div className="absolute left-0 top-0 md:relative md:left-auto md:top-auto w-4 h-4 rounded-full bg-primary mb-6 ring-8 ring-primary/10"></div>
             <h4 className="font-headline font-bold text-lg mb-2">Phase 1 Start</h4>
             <p className="text-xs text-on-surface-variant">Initialization of foundational prompting protocols. Calibration period: 2 weeks.</p>
           </div>
-          <div className="relative z-10 md:w-1/4">
-            <div className="w-4 h-4 rounded-full bg-primary/40 mb-6"></div>
+          <div className="relative z-10 md:w-1/4 pl-8 md:pl-0">
+            <div className="absolute left-0 top-0 md:relative md:left-auto md:top-auto w-4 h-4 rounded-full bg-primary/40 mb-6"></div>
             <h4 className="font-headline font-bold text-lg mb-2">Midpoint Sync</h4>
             <p className="text-xs text-on-surface-variant">Transition to workflow automation. Integration of custom GPT agents.</p>
           </div>
-          <div className="relative z-10 md:w-1/4">
-            <div className="w-4 h-4 rounded-full bg-primary/20 mb-6"></div>
+          <div className="relative z-10 md:w-1/4 pl-8 md:pl-0">
+            <div className="absolute left-0 top-0 md:relative md:left-auto md:top-auto w-4 h-4 rounded-full bg-primary/20 mb-6"></div>
             <h4 className="font-headline font-bold text-lg mb-2">Finalization</h4>
             <p className="text-xs text-on-surface-variant">Deployment of full agentic suite. Mindset shift certification.</p>
           </div>
-          <div className="relative z-10 md:w-1/4">
-            <div className="w-4 h-4 rounded-full border-2 border-primary/50 mb-6"></div>
+          <div className="relative z-10 md:w-1/4 pl-8 md:pl-0">
+            <div className="absolute left-0 top-0 md:relative md:left-auto md:top-auto w-4 h-4 rounded-full border-2 border-primary/50 mb-6"></div>
             <h4 className="font-headline font-bold text-lg mb-2">Evolution</h4>
             <p className="text-xs text-on-surface-variant">Post-workshop iterative scaling and community protocol updates.</p>
           </div>

@@ -1,0 +1,41 @@
+{
+  "entities": {
+    "Feedback": {
+      "title": "Feedback",
+      "description": "Anonymous feedback submitted by workshop participants.",
+      "type": "object",
+      "properties": {
+        "rating": {
+          "type": "number",
+          "description": "Star rating from 1 to 5."
+        },
+        "phase": {
+          "type": "string",
+          "description": "The selected workshop phase."
+        },
+        "keyDataPoints": {
+          "type": "string",
+          "description": "Key data points extracted."
+        },
+        "additionalLogs": {
+          "type": "string",
+          "description": "Additional feedback or suggestions."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of submission."
+        }
+      },
+      "required": ["rating", "timestamp"]
+    }
+  },
+  "firestore": {
+    "feedback/{feedbackId}": {
+      "schema": {
+        "$ref": "#/entities/Feedback"
+      },
+      "description": "Collection of all feedback submissions."
+    }
+  }
+}

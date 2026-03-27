@@ -1,34 +1,43 @@
 import React, { useState } from "react";
-import { Star, Terminal as TerminalIcon, GitFork, Brain, Zap } from "lucide-react";
+import { Star, Terminal as TerminalIcon, GitFork, Brain, Zap, LogIn } from "lucide-react";
 import { cn } from "../lib/utils";
+import { useAuth } from "../components/FirebaseProvider";
+import { collection, addDoc } from "firebase/firestore";
+import { db } from "../firebase";
 
 export default function Feedback() {
+  const { user, login } = useAuth();
   const [rating, setRating] = useState(0);
   const [selectedPhase, setSelectedPhase] = useState<string | null>(null);
+  const [keyDataPoints, setKeyDataPoints] = useState("");
+  const [additionalLogs, setAdditionalLogs] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (rating === 0) {
+      setError("Please select a rating.");
+      return;
+    }
+
     setIsSubmitting(true);
+    setError(null);
     
-    // Simulate API call to "Google Spreadsheet"
     try {
-      const response = await fetch("/api/feedback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          rating,
-          phase: selectedPhase,
-          timestamp: new Date().toISOString(),
-        }),
+      await addDoc(collection(db, "feedback"), {
+        rating,
+        phase: selectedPhase || "",
+        keyDataPoints,
+        additionalLogs,
+        timestamp: new Date().toISOString(),
       });
       
-      if (response.ok) {
-        setSubmitted(true);
-      }
-    } catch (error) {
+      setSubmitted(true);
+    } catch (error: any) {
       console.error("Submission failed", error);
+      setError(error.message || "Failed to submit feedback.");
     } finally {
       setIsSubmitting(false);
     }
@@ -38,9 +47,15 @@ export default function Feedback() {
     return (
       <div className="max-w-4xl mx-auto text-center py-20">
         <h1 className="text-4xl font-headline font-bold text-primary mb-4">PROTOCOL SUBMITTED</h1>
-        <p className="text-on-surface-variant mb-8">Your feedback has been successfully integrated into the SLIIT Innovator Nexus.</p>
+        <p className="text-on-surface-variant mb-8">Your feedback has been successfully integrated into the AI Innovator Nexus.</p>
         <button
-          onClick={() => setSubmitted(false)}
+          onClick={() => {
+            setSubmitted(false);
+            setRating(0);
+            setSelectedPhase(null);
+            setKeyDataPoints("");
+            setAdditionalLogs("");
+          }}
           className="px-8 py-4 bg-primary text-surface font-headline font-bold uppercase tracking-widest"
         >
           Submit Another
@@ -60,7 +75,7 @@ export default function Feedback() {
           The Irreplaceable <span className="text-primary">Innovator</span> Workshop
         </h1>
         <p className="text-on-surface-variant font-body text-lg max-w-2xl leading-relaxed">
-          SLIIT Kandy Innovators - <span className="text-tertiary">Anonymous Feedback Protocol</span>. Your data will be processed to optimize future agentic workflows.
+          Institute Of AI Innovators - <span className="text-tertiary">Anonymous Feedback Protocol</span>. Your data will be processed to optimize future agentic workflows.
         </p>
       </header>
 
@@ -72,21 +87,21 @@ export default function Feedback() {
               <label className="font-headline text-sm uppercase tracking-[0.3em] text-slate-400">01. Overall System Rating</label>
               <span className="font-mono text-[10px] text-primary opacity-50">[FLOAT: 1.0 - 5.0]</span>
             </div>
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-2 sm:gap-4">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
                   key={star}
                   type="button"
                   onClick={() => setRating(star)}
                   className={cn(
-                    "w-14 h-14 border flex items-center justify-center group transition-all",
+                    "w-12 h-12 sm:w-14 sm:h-14 border flex items-center justify-center group transition-all",
                     rating >= star ? "border-primary bg-primary/10" : "border-outline-variant/30 hover:bg-primary/5"
                   )}
                 >
                   <Star
-                    size={24}
+                    size={20}
                     className={cn(
-                      "transition-all",
+                      "transition-all sm:w-6 sm:h-6",
                       rating >= star ? "text-primary fill-primary scale-110" : "text-slate-600 group-hover:text-primary"
                     )}
                   />
@@ -145,6 +160,8 @@ export default function Feedback() {
             <div className="relative">
               <div className="absolute top-3 left-4 text-primary font-mono text-sm opacity-50">&gt;_</div>
               <textarea
+                value={keyDataPoints}
+                onChange={(e) => setKeyDataPoints(e.target.value)}
                 className="w-full bg-surface-container-low border border-outline-variant/20 focus:border-primary focus:ring-0 text-on-surface font-mono text-sm pl-10 pt-3 terminal-scroll resize-none"
                 placeholder="e.g., Using AI as a 24/7 mentor, the Perfect Prompt Formula..."
                 rows={4}
@@ -157,12 +174,20 @@ export default function Feedback() {
             <div className="relative">
               <div className="absolute top-3 left-4 text-primary font-mono text-sm opacity-50">&gt;_</div>
               <textarea
+                value={additionalLogs}
+                onChange={(e) => setAdditionalLogs(e.target.value)}
                 className="w-full bg-surface-container-low border border-outline-variant/20 focus:border-primary focus:ring-0 text-on-surface font-mono text-sm pl-10 pt-3 terminal-scroll resize-none"
                 placeholder="Any other feedback or suggestions?"
                 rows={4}
               ></textarea>
             </div>
           </div>
+
+          {error && (
+            <div className="p-4 bg-red-500/10 border border-red-500/50 text-red-400 font-mono text-xs">
+              [ERROR] {error}
+            </div>
+          )}
 
           {/* Submit */}
           <div className="pt-8">
@@ -173,7 +198,7 @@ export default function Feedback() {
               {isSubmitting ? "Processing..." : "Submit Feedback Protocol"}
               <Zap size={20} className="group-hover:translate-x-1 transition-transform" />
             </button>
-            <p className="mt-4 text-[10px] text-slate-600 font-mono text-center md:text-left">By submitting, you agree to store this data in the SLIIT Innovator Nexus.</p>
+            <p className="mt-4 text-[10px] text-slate-600 font-mono text-center md:text-left">By submitting, you agree to store this data in the AI Innovator Nexus.</p>
           </div>
         </form>
 
@@ -205,7 +230,7 @@ export default function Feedback() {
                 </div>
                 <div>
                   <span className="block text-[10px] text-slate-600 uppercase">Location</span>
-                  <span className="block text-xs font-mono text-on-surface">Kandy Node</span>
+                  <span className="block text-xs font-mono text-on-surface">CMB Node</span>
                 </div>
               </div>
             </div>

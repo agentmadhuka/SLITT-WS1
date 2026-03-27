@@ -1,6 +1,43 @@
-import { Cpu, Zap, Rocket, Users, ShieldCheck, Database, MapPin } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Cpu, Zap, Rocket, Users, ShieldCheck, Database, MapPin, Play } from "lucide-react";
+import { useAuth } from "../components/FirebaseProvider";
 
 export default function Overview() {
+  const [isLive, setIsLive] = useState(false);
+  const [timeLeft, setTimeLeft] = useState("00:00:00");
+  const { user } = useAuth();
+  const isAdmin = user?.email === "agentmadhuka@gmail.com";
+
+  useEffect(() => {
+    if (isLive) return;
+
+    const calculateTimeLeft = () => {
+      const now = new Date();
+      const target = new Date();
+      target.setHours(11, 0, 0, 0);
+      
+      if (now > target) {
+        // If it's already past 11 AM today, set for tomorrow 11 AM
+        target.setDate(target.getDate() + 1);
+      }
+
+      const difference = target.getTime() - now.getTime();
+      
+      const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((difference / 1000 / 60) % 60);
+      const seconds = Math.floor((difference / 1000) % 60);
+
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    };
+
+    setTimeLeft(calculateTimeLeft());
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isLive]);
+
   return (
     <div className="max-w-7xl mx-auto">
       {/* Hero Section */}
@@ -19,21 +56,21 @@ export default function Overview() {
           <p className="text-xl text-on-surface-variant font-light max-w-2xl mb-10 leading-relaxed">
             The "Irreplaceable Innovator" protocol is a strategic re-calibration. We shift from linear execution to exponential problem-solving. Transitioning the human agent from a <span className="text-primary font-medium">task-doer</span> to an <span className="text-tertiary font-medium">architect of value</span>.
           </p>
-          <div className="flex flex-wrap gap-4">
-            <button className="px-8 py-4 bg-gradient-to-br from-primary to-primary-container text-surface font-headline font-bold tracking-widest uppercase hover:shadow-[0_0_20px_rgba(58,223,250,0.5)] transition-all active:scale-95">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <button className="w-full sm:w-auto px-8 py-4 bg-gradient-to-br from-primary to-primary-container text-surface font-headline font-bold tracking-widest uppercase hover:shadow-[0_0_20px_rgba(58,223,250,0.5)] transition-all active:scale-95 text-center">
               Initialize Protocol
             </button>
             <a
               href="https://notebooklm.google.com/notebook/c163c491-95bd-4949-bb1d-0d49f21a9616"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-8 py-4 border border-outline-variant/30 text-on-surface font-headline font-bold tracking-widest uppercase hover:bg-primary/10 transition-all flex items-center justify-center"
+              className="w-full sm:w-auto px-8 py-4 border border-outline-variant/30 text-on-surface font-headline font-bold tracking-widest uppercase hover:bg-primary/10 transition-all flex items-center justify-center text-center"
             >
               View Documentation
             </a>
           </div>
         </div>
-        <div className="lg:col-span-5 relative">
+        <div className="lg:col-span-5 relative mt-8 lg:mt-0">
           <div className="aspect-square bg-surface-container relative overflow-hidden group">
             <img
               className="w-full h-full object-cover opacity-60 grayscale group-hover:grayscale-0 transition-all duration-700"
@@ -47,16 +84,17 @@ export default function Overview() {
             </div>
           </div>
           {/* Stats Floating Card */}
-          <div className="absolute -bottom-6 -left-6 p-6 glass-panel border border-primary/20 shadow-2xl">
-            <div className="flex flex-col gap-4">
+          <div className="absolute bottom-0 left-0 md:-bottom-6 md:-left-6 p-4 md:p-6 glass-panel border border-primary/20 shadow-2xl w-[calc(100%-2rem)] md:w-auto m-4 md:m-0">
+            <div className="flex flex-row md:flex-col gap-4 justify-between md:justify-start">
               <div>
                 <div className="text-[10px] text-slate-500 uppercase tracking-widest mb-1">System Uptime</div>
-                <div className="text-3xl font-headline font-bold text-primary tracking-tighter">99.98%</div>
+                <div className="text-2xl md:text-3xl font-headline font-bold text-primary tracking-tighter">99.98%</div>
               </div>
-              <div className="w-full h-[1px] bg-outline-variant/20"></div>
+              <div className="hidden md:block w-full h-[1px] bg-outline-variant/20"></div>
+              <div className="block md:hidden w-[1px] h-full bg-outline-variant/20"></div>
               <div>
                 <div className="text-[10px] text-slate-500 uppercase tracking-widest mb-1">Active Nodes</div>
-                <div className="text-3xl font-headline font-bold text-tertiary tracking-tighter">1,240</div>
+                <div className="text-2xl md:text-3xl font-headline font-bold text-tertiary tracking-tighter">1,240</div>
               </div>
             </div>
           </div>
@@ -117,35 +155,54 @@ export default function Overview() {
 
       {/* Secondary CTA / Stats Section */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="p-12 glass-panel border border-outline-variant/10 relative overflow-hidden flex flex-col justify-center">
+        <div className="p-6 md:p-12 glass-panel border border-outline-variant/10 relative overflow-hidden flex flex-col justify-center">
           <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-primary/5 rounded-full blur-[100px]"></div>
-          <h4 className="font-headline font-bold text-4xl text-on-surface mb-6 tracking-tighter">READY TO <br /><span className="text-primary uppercase">Override?</span></h4>
+          <h4 className="font-headline font-bold text-3xl md:text-4xl text-on-surface mb-6 tracking-tighter">READY TO <br /><span className="text-primary uppercase">Override?</span></h4>
           <p className="text-on-surface-variant mb-8 max-w-md">
-            The workshop begins in <span className="text-tertiary">04:12:35</span>. Synchronize your workstation to receive the initial payload.
+            {isLive ? (
+              <span className="text-tertiary font-bold text-xl uppercase tracking-widest animate-pulse">Now Live</span>
+            ) : (
+              <>The workshop begins in <span className="text-tertiary font-mono">{timeLeft}</span>. Synchronize your workstation to receive the initial payload.</>
+            )}
           </p>
-          <button className="w-fit px-10 py-4 bg-surface-container-highest text-primary font-headline font-black uppercase tracking-widest border border-primary/20 hover:bg-primary hover:text-surface transition-all">
-            Synchronize Now
-          </button>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <a 
+              href="https://notebooklm.google.com/notebook/c163c491-95bd-4949-bb1d-0d49f21a9616"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full md:w-fit px-6 md:px-10 py-4 bg-surface-container-highest text-primary font-headline font-black uppercase tracking-widest border border-primary/20 hover:bg-primary hover:text-surface transition-all text-center"
+            >
+              Synchronize Now
+            </a>
+            {isAdmin && !isLive && (
+              <button 
+                onClick={() => setIsLive(true)}
+                className="w-full md:w-fit px-6 py-4 bg-tertiary/20 text-tertiary font-headline font-black uppercase tracking-widest border border-tertiary/50 hover:bg-tertiary hover:text-surface transition-all flex items-center justify-center gap-2"
+              >
+                <Play size={20} /> Start
+              </button>
+            )}
+          </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="p-8 bg-surface-container border border-outline-variant/10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="p-6 md:p-8 bg-surface-container border border-outline-variant/10">
             <Users size={24} className="text-tertiary mb-4" />
-            <div className="text-4xl font-headline font-bold mb-1">450+</div>
+            <div className="text-3xl md:text-4xl font-headline font-bold mb-1">450+</div>
             <div className="text-[10px] text-slate-500 uppercase tracking-widest">Innovators Synced</div>
           </div>
-          <div className="p-8 bg-surface-container border border-outline-variant/10">
+          <div className="p-6 md:p-8 bg-surface-container border border-outline-variant/10">
             <ShieldCheck size={24} className="text-tertiary mb-4" />
-            <div className="text-4xl font-headline font-bold mb-1">92%</div>
+            <div className="text-3xl md:text-4xl font-headline font-bold mb-1">92%</div>
             <div className="text-[10px] text-slate-500 uppercase tracking-widest">Efficiency Gain</div>
           </div>
-          <div className="p-8 bg-surface-container border border-outline-variant/10">
+          <div className="p-6 md:p-8 bg-surface-container border border-outline-variant/10">
             <Database size={24} className="text-tertiary mb-4" />
-            <div className="text-4xl font-headline font-bold mb-1">12.5 TB</div>
+            <div className="text-3xl md:text-4xl font-headline font-bold mb-1">12.5 TB</div>
             <div className="text-[10px] text-slate-500 uppercase tracking-widest">Data Processed</div>
           </div>
-          <div className="p-8 bg-surface-container border border-outline-variant/10">
+          <div className="p-6 md:p-8 bg-surface-container border border-outline-variant/10">
             <MapPin size={24} className="text-tertiary mb-4" />
-            <div className="text-4xl font-headline font-bold mb-1">Kandy</div>
+            <div className="text-3xl md:text-4xl font-headline font-bold mb-1">CMB</div>
             <div className="text-[10px] text-slate-500 uppercase tracking-widest">Base Operations</div>
           </div>
         </div>

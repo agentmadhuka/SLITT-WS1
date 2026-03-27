@@ -1,6 +1,67 @@
-import { LineChart, Award, Zap } from "lucide-react";
+import { useState } from "react";
+import { LineChart, Award, Zap, Download } from "lucide-react";
+import { useAuth } from "../components/FirebaseProvider";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../firebase";
 
 export default function Takeaways() {
+  const { user } = useAuth();
+  const [isExporting, setIsExporting] = useState(false);
+  const isAdmin = user?.email === "agentmadhuka@gmail.com";
+
+  const handleExportCSV = async () => {
+    if (!isAdmin) return;
+    setIsExporting(true);
+    try {
+      const querySnapshot = await getDocs(collection(db, "feedback"));
+      const data: any[] = [];
+      querySnapshot.forEach((doc) => {
+        data.push({ id: doc.id, ...doc.data() });
+      });
+
+      if (data.length === 0) {
+        alert("No feedback data found.");
+        setIsExporting(false);
+        return;
+      }
+
+      // Extract headers
+      const headers = Object.keys(data[0]).filter(key => key !== 'id');
+      headers.unshift('id'); // Put ID first
+
+      // Convert to CSV string
+      const csvRows = [];
+      csvRows.push(headers.join(',')); // Header row
+
+      for (const row of data) {
+        const values = headers.map(header => {
+          const val = row[header];
+          // Escape quotes and wrap in quotes to handle commas in text
+          const escaped = ('' + (val || '')).replace(/"/g, '""');
+          return `"${escaped}"`;
+        });
+        csvRows.push(values.join(','));
+      }
+
+      const csvString = csvRows.join('\n');
+      
+      // Trigger download
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `feedback_export_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Error exporting data:", error);
+      alert("Failed to export data. Check console for details.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
@@ -16,16 +77,28 @@ export default function Takeaways() {
             Summarizing the "Key Data Points Extracted" from the Agentic Innovator workshop sessions. Real-time participant analysis and sentiment metrics.
           </p>
         </div>
-        <div className="glass-panel p-6 border-t border-primary/40 relative overflow-hidden">
-          <p className="italic text-tertiary font-headline text-xl leading-snug max-w-xs relative z-10">
-            "Degrees get interviews; adaptability gets careers."
-          </p>
+        <div className="flex flex-col items-end gap-4">
+          {isAdmin && (
+            <button
+              onClick={handleExportCSV}
+              disabled={isExporting}
+              className="px-6 py-3 bg-surface-container-highest border border-primary/30 text-primary font-headline font-bold text-xs tracking-widest uppercase hover:bg-primary/10 transition-all flex items-center gap-2 disabled:opacity-50"
+            >
+              <Download size={16} />
+              {isExporting ? "Exporting..." : "Export CSV Data"}
+            </button>
+          )}
+          <div className="glass-panel p-6 border-t border-primary/40 relative overflow-hidden">
+            <p className="italic text-tertiary font-headline text-xl leading-snug max-w-xs relative z-10">
+              "Degrees get interviews; adaptability gets careers."
+            </p>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[200px]">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-auto md:auto-rows-[200px]">
         {/* Problem-Solver Score */}
-        <div className="md:col-span-4 md:row-span-2 bg-surface-container border border-outline-variant/20 p-8 flex flex-col justify-between relative group overflow-hidden">
+        <div className="md:col-span-4 md:row-span-2 bg-surface-container border border-outline-variant/20 p-8 flex flex-col justify-between relative group overflow-hidden min-h-[300px] md:min-h-0">
           <div className="absolute top-0 left-0 w-1 h-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></div>
           <div>
             <div className="flex justify-between items-start">
@@ -54,7 +127,7 @@ export default function Takeaways() {
         </div>
 
         {/* Sentiment Analysis */}
-        <div className="md:col-span-8 md:row-span-1 bg-surface-container border border-outline-variant/20 p-6 flex flex-col justify-between">
+        <div className="md:col-span-8 md:row-span-1 bg-surface-container border border-outline-variant/20 p-6 flex flex-col justify-between min-h-[200px] md:min-h-0">
           <div className="flex justify-between items-center border-b border-outline-variant/10 pb-4">
             <span className="text-primary font-headline text-[10px] tracking-[0.3em] uppercase">Sentiment Analysis</span>
             <div className="flex gap-2">
@@ -74,12 +147,12 @@ export default function Takeaways() {
         </div>
 
         {/* Insights Feed */}
-        <div className="md:col-span-8 md:row-span-1 bg-surface-container-low border border-outline-variant/20 overflow-hidden flex flex-col">
+        <div className="md:col-span-8 md:row-span-1 bg-surface-container-low border border-outline-variant/20 overflow-hidden flex flex-col min-h-[200px] md:min-h-0">
           <div className="p-4 bg-surface-container border-b border-outline-variant/10 flex items-center justify-between">
             <span className="text-primary font-headline text-[10px] tracking-[0.3em] uppercase flex items-center gap-2">
               <span className="w-1.5 h-1.5 bg-primary animate-pulse"></span> Insights Feed
             </span>
-            <span className="text-[10px] text-on-surface-variant font-mono uppercase">Node: SLIIT-KANDY-01</span>
+            <span className="text-[10px] text-on-surface-variant font-mono uppercase">Node: CMB-01</span>
           </div>
           <div className="flex-1 p-4 overflow-y-auto font-mono text-xs space-y-3 terminal-scroll">
             <div className="flex gap-3">
@@ -99,15 +172,15 @@ export default function Takeaways() {
         </div>
 
         {/* Stats */}
-        <div className="md:col-span-3 md:row-span-1 bg-surface-container border border-outline-variant/20 p-6 flex flex-col justify-center gap-2 text-center group">
+        <div className="md:col-span-3 md:row-span-1 bg-surface-container border border-outline-variant/20 p-6 flex flex-col justify-center gap-2 text-center group min-h-[150px] md:min-h-0">
           <span className="text-on-surface-variant font-headline text-[10px] tracking-[0.2em] uppercase">Participant Engagement</span>
           <span className="text-4xl font-headline font-bold text-secondary group-hover:scale-110 transition-transform">98%</span>
         </div>
-        <div className="md:col-span-3 md:row-span-1 bg-surface-container border border-outline-variant/20 p-6 flex flex-col justify-center gap-2 text-center group">
+        <div className="md:col-span-3 md:row-span-1 bg-surface-container border border-outline-variant/20 p-6 flex flex-col justify-center gap-2 text-center group min-h-[150px] md:min-h-0">
           <span className="text-on-surface-variant font-headline text-[10px] tracking-[0.2em] uppercase">Innovation Hubs</span>
           <span className="text-4xl font-headline font-bold text-tertiary group-hover:scale-110 transition-transform">12</span>
         </div>
-        <div className="md:col-span-6 md:row-span-1 relative group overflow-hidden border border-outline-variant/20">
+        <div className="md:col-span-6 md:row-span-1 relative group overflow-hidden border border-outline-variant/20 min-h-[200px] md:min-h-0">
           <img
             className="w-full h-full object-cover grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-60 transition-all duration-500"
             src="https://picsum.photos/seed/neural-network/800/200"
@@ -127,16 +200,16 @@ export default function Takeaways() {
         <div>
           <h2 className="text-3xl font-headline font-bold text-on-surface uppercase mb-4 tracking-tight">Ready to Initialize Your Path?</h2>
           <p className="text-on-surface-variant font-body mb-8">The workshop concludes here, but the innovation continues. Download your personalized protocol and join the agentic elite.</p>
-          <div className="flex flex-wrap gap-4">
-            <button className="px-8 py-4 bg-primary text-surface font-headline font-bold text-sm tracking-[0.2em] uppercase hover:bg-primary-container transition-colors shadow-[0_0_20px_rgba(58,223,250,0.3)]">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <button className="w-full sm:w-auto px-8 py-4 bg-primary text-surface font-headline font-bold text-sm tracking-[0.2em] uppercase hover:bg-primary-container transition-colors shadow-[0_0_20px_rgba(58,223,250,0.3)] text-center">
               Download Protocol
             </button>
-            <button className="px-8 py-4 border border-outline-variant/40 text-on-surface font-headline font-bold text-sm tracking-[0.2em] uppercase hover:bg-surface-container transition-colors">
+            <button className="w-full sm:w-auto px-8 py-4 border border-outline-variant/40 text-on-surface font-headline font-bold text-sm tracking-[0.2em] uppercase hover:bg-surface-container transition-colors text-center">
               View Logs
             </button>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="bg-surface-container p-6 border-l-4 border-secondary">
             <Award size={24} className="text-secondary mb-2" />
             <p className="text-[10px] text-on-surface-variant uppercase font-headline mb-1">Rank</p>
