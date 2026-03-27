@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+@theme {
+  --font-headline: "Space Grotesk", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --color-primary: #3adffa;
+  --color-primary-container: #00cbe6;
+  --color-secondary: #2db7f2;
+  --color-tertiary: #8ce7ff;
+  --color-surface: #080e1d;
+  --color-surface-container: #12192b;
+  --color-surface-container-low: #0c1324;
+  --color-surface-container-highest: #1d253b;
+  --color-on-surface: #e0e5fb;
+  --color-on-surface-variant: #a5aabf;
+  --color-outline-variant: #424859;
+}
+
+@layer base {
+  body {
+    @apply bg-surface text-on-surface font-body selection:bg-primary/30;
+    background-image: radial-gradient(circle at 2px 2px, rgba(58, 223, 250, 0.05) 1px, transparent 0);
+    background-size: 40px 40px;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-[#12192b]/70 backdrop-blur-xl border border-outline-variant/20;
+  }
+
+  .circuit-edge {
+    @apply relative;
+  }
+
+  .circuit-edge::before {
+    content: '';
+    @apply absolute top-0 left-0 w-[10px] h-[1px] bg-primary;
+  }
+
+  .circuit-edge::after {
+    content: '';
+    @apply absolute top-0 left-0 w-[1px] h-[10px] bg-primary;
+  }
+
+  .terminal-scroll::-webkit-scrollbar {
+    @apply w-1;
+  }
+
+  .terminal-scroll::-webkit-scrollbar-thumb {
+    @apply bg-primary/30 hover:bg-primary/50;
+  }
+}
+
+@keyframes neon-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(58, 223, 250, 0.4), 0 0 40px rgba(58, 223, 250, 0.2); }
+  50% { box-shadow: 0 0 40px rgba(58, 223, 250, 0.7), 0 0 70px rgba(58, 223, 250, 0.4); }
+}
+
+.animate-neon-pulse {
+  animation: neon-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.scanline {
+  @apply w-full h-[100px] z-10 pointer-events-none absolute;
+  background: linear-gradient(0deg, rgba(58, 223, 250, 0) 0%, rgba(58, 223, 250, 0.05) 50%, rgba(58, 223, 250, 0) 100%);
+}
